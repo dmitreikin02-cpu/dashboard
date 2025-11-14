@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест загрузки данных</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .status {
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        h1 {
+            color: #333;
+        }
+        pre {
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Диагностика дашборда</h1>
+    
+    <div class="info status">
+        <strong>Инструкция:</strong><br>
+        1. Запустите локальный сервер: <code>python -m http.server 8000</code><br>
+        2. Откройте этот файл через: <code>http://localhost:8000/test_connection.html</code><br>
+        3. Нажмите кнопку "Проверить загрузку"
+    </div>
+    
+    <button onclick="testConnection()">🔄 Проверить загрузку data.xlsx</button>
+    <button onclick="testBrowser()">🌐 Проверить браузер</button>
+    
+    <div id="results"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        function testBrowser() {
+            document.getElementById('results').innerHTML = '';
+            
+            log('✅ <strong>Проверка браузера</strong>', 'success');
+            log(`<strong>URL:</strong> ${window.location.href}`, 'info');
+            log(`<strong>Протокол:</strong> ${window.location.protocol}`, 'info');
+            
+            if (window.location.protocol === 'file:') {
+                log('❌ <strong>ОШИБКА:</strong> Вы открыли файл через file://. Используйте локальный сервер!', 'error');
+                log('📝 <strong>Решение:</strong><br>1. Откройте терминал в папке с файлами<br>2. Выполните: <code>python -m http.server 8000</code><br>3. Откройте: <code>http://localhost:8000/test_connection.html</code>', 'info');
+            } else {
+                log('✅ Используется правильный протокол (http://)', 'success');
+            }
+            
+            if (typeof XLSX !== 'undefined') {
+                log('✅ Библиотека SheetJS загружена', 'success');
+            } else {
+                log('❌ Библиотека SheetJS не загружена', 'error');
+            }
+        }
+        
+        async function testConnection() {
+            document.getElementById('results').innerHTML = '';
+            
+            log('🔄 <strong>Начало проверки...</strong>', 'info');
+            
+            // Проверка 1: Протокол
+            if (window.location.protocol === 'file:') {
+                log('❌ <strong>Критическая ошибка:</strong> Файл открыт через file://. Данные не загрузятся!', 'error');
+                return;
+            }
+            
+            // Проверка 2: Загрузка файла
+            try {
+                log('📥 Загружаю data.xlsx...', 'info');
+                
+                const response = await fetch('data.xlsx');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                log(`✅ Файл загружен! Статус: ${response.status} OK`, 'success');
+                
+                // Проверка 3: Парсинг Excel
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                
+                log(`✅ Excel файл распарсен! Листов: ${workbook.SheetNames.length}`, 'success');
+                
+                // Проверка 4: Данные
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                
+                log(`✅ Данных найдено: <strong>${jsonData.length} строк</strong>`, 'success');
+                
+                if (jsonData.length === 0) {
+                    log('⚠️ Файл пустой!', 'error');
+                    return;
+                }
+                
+                // Проверка 5: Структура
+                const firstRow = jsonData[0];
+                const columns = Object.keys(firstRow);
+                
+                log(`<strong>Колонки в файле (${columns.length}):</strong><br>` + 
+                    columns.map(c => `• ${c}`).join('<br>'), 'info');
+                
+                // Проверка 6: Даты
+                if (firstRow['Дата операций']) {
+                    const dates = jsonData.map(row => row['Дата операций']).filter(d => d);
+                    const uniqueDates = [...new Set(dates)];
+                    
+                    log(`<strong>Уникальные даты (${uniqueDates.length}):</strong><br>` + 
+                        uniqueDates.slice(0, 5).map(d => `• ${d}`).join('<br>'), 'info');
+                    
+                    // Проверяем актуальность
+                    const today = new Date();
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(today.getDate() - 30);
+                    
+                    log(`<strong>Сегодня:</strong> ${today.toLocaleDateString('ru-RU')}<br>` +
+                        `<strong>30 дней назад:</strong> ${thirtyDaysAgo.toLocaleDateString('ru-RU')}`, 'info');
+                } else {
+                    log('⚠️ Колонка "Дата операций" не найдена!', 'error');
+                }
+                
+                // Проверка 7: Операции
+                if (firstRow['Название операции']) {
+                    const operations = jsonData.map(row => row['Название операции']).filter(o => o);
+                    const uniqueOps = [...new Set(operations)];
+                    
+                    log(`<strong>Операции (${uniqueOps.length}):</strong><br>` + 
+                        uniqueOps.map(o => `• ${o}`).join('<br>'), 'info');
+                    
+                    // Проверяем нужные операции
+                    const hasReceiving = uniqueOps.some(o => o.toLowerCase().includes('приемка'));
+                    const hasPlacement = uniqueOps.some(o => 
+                        o.toLowerCase().includes('ручные перемещения') || 
+                        o.toLowerCase().includes('привязка к местам')
+                    );
+                    const hasPicking = uniqueOps.some(o => 
+                        o.toLowerCase().includes('пикинг') && 
+                        o.toLowerCase().includes('мезонин')
+                    );
+                    
+                    if (hasReceiving) log('✅ Найдена операция "приемка"', 'success');
+                    else log('⚠️ Операция "приемка" не найдена', 'error');
+                    
+                    if (hasPlacement) log('✅ Найдены операции размещения', 'success');
+                    else log('⚠️ Операции размещения не найдены', 'error');
+                    
+                    if (hasPicking) log('✅ Найдена операция "пикинг"', 'success');
+                    else log('⚠️ Операция "пикинг" не найдена', 'error');
+                } else {
+                    log('⚠️ Колонка "Название операции" не найдена!', 'error');
+                }
+                
+                // Проверка 8: Первая строка
+                log('<strong>Первая строка данных:</strong><pre>' + 
+                    JSON.stringify(firstRow, null, 2) + '</pre>', 'info');
+                
+                log('🎉 <strong>Проверка завершена!</strong>', 'success');
+                log('Если все ✅ - дашборд должен работать! Если есть ⚠️ или ❌ - исправьте проблемы.', 'info');
+                
+            } catch (error) {
+                log(`❌ <strong>ОШИБКА при загрузке:</strong> ${error.message}`, 'error');
+                
+                if (error.message.includes('Failed to fetch')) {
+                    log('📝 <strong>Возможные причины:</strong><br>' +
+                        '1. Файл data.xlsx не найден в папке<br>' +
+                        '2. Не запущен локальный сервер<br>' +
+                        '3. Файл открыт через file://', 'info');
+                }
+            }
+        }
+        
+        // Автопроверка при загрузке
+        window.addEventListener('DOMContentLoaded', () => {
+            testBrowser();
+        });
+    </script>
+</body>
+</html>
