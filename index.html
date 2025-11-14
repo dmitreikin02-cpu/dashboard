@@ -23,121 +23,131 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333;
-            padding: 20px;
+            padding: 10px;
             min-height: 100vh;
+            overflow-y: auto;
         }
 
         .container {
             max-width: 1920px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 15px;
+            padding: 15px 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            min-height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 20px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            color: #667eea;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
         }
 
         .last-update {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             color: #666;
             font-weight: 500;
         }
 
         .kpi-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .kpi-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
-            border-radius: 15px;
+            padding: 15px 20px;
+            border-radius: 10px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-            transition: transform 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            transition: transform 0.2s ease;
         }
 
         .kpi-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
         }
 
         .kpi-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 15px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
             opacity: 0.9;
+            font-weight: 600;
         }
 
         .kpi-card .value {
-            font-size: 3rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .kpi-card .unit {
-            font-size: 1.1rem;
+            font-size: 0.8rem;
             opacity: 0.8;
         }
 
         .charts-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 10px;
+            flex: 1;
         }
 
         .chart-container {
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
         }
 
         .chart-wrapper {
             position: relative;
-            height: 400px;
-            margin-bottom: 20px;
+            flex: 1;
+            min-height: 0;
+            margin-bottom: 10px;
         }
 
         .top-performers {
             background: white;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #667eea;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
         }
 
         .top-performers h4 {
             color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
         .top-performers ol {
             list-style-position: inside;
             padding-left: 0;
+            margin: 0;
         }
 
         .top-performers li {
-            padding: 10px;
-            margin-bottom: 8px;
+            padding: 4px 6px;
+            margin-bottom: 3px;
             background: #f8f9fa;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            border-left: 2px solid #667eea;
+            line-height: 1.3;
+        }
+
+        .top-performers li:last-child {
+            margin-bottom: 0;
         }
 
         .top-performers li:nth-child(1) {
@@ -157,41 +167,7 @@
         }
 
         .norms-section {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            margin-top: 40px;
-        }
-
-        .norms-section h3 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
-
-        .norms-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .norm-item {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 20px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
-
-        .norm-item .label {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-        }
-
-        .norm-item .value {
-            font-size: 2rem;
-            font-weight: bold;
+            display: none;
         }
 
         .loading {
@@ -211,32 +187,23 @@
             font-size: 1.2rem;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1400px) {
             .charts-section {
                 grid-template-columns: 1fr;
             }
             
-            .header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .kpi-card .value {
-                font-size: 2rem;
+            .kpi-section {
+                grid-template-columns: 1fr;
             }
         }
 
-        /* Стили для отображения на телевизоре */
-        @media (min-width: 1920px) {
-            .header h1 {
-                font-size: 3.5rem;
-            }
-            
-            .kpi-card .value {
-                font-size: 4rem;
+        @media (min-width: 1400px) and (max-width: 1920px) {
+            .container {
+                padding: 20px;
             }
             
             .chart-wrapper {
-                height: 500px;
+                height: 280px;
             }
         }
     </style>
@@ -244,7 +211,6 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Производственный Дашборд</h1>
             <div class="last-update" id="lastUpdate">Загрузка данных...</div>
         </div>
 
@@ -547,6 +513,23 @@
         }
 
         /**
+         * Вычисляет оптимальный шаг для шкалы
+         */
+        function calculateStepSize(maxValue, norm) {
+            const reference = Math.max(maxValue, norm * 2);
+            const magnitude = Math.pow(10, Math.floor(Math.log10(reference)));
+            const normalized = reference / magnitude;
+            
+            let stepSize;
+            if (normalized <= 1) stepSize = magnitude / 10;
+            else if (normalized <= 2) stepSize = magnitude / 5;
+            else if (normalized <= 5) stepSize = magnitude / 2;
+            else stepSize = magnitude;
+            
+            return Math.ceil(stepSize);
+        }
+
+        /**
          * Создаёт или обновляет график
          */
         function createOrUpdateChart(canvasId, chartKey, data, title, norm) {
@@ -557,9 +540,9 @@
             const values = data.map(d => d.value);
             const colors = values.map(v => getBarColor(v, norm));
             
-            // Вычисляем общую сумму
-            const total = _.sum(values);
-            const fullTitle = `${title} — всего ${total.toLocaleString('ru-RU')}`;
+            // Вычисляем максимальное значение и шаг
+            const maxValue = Math.max(...values, norm * 1.2);
+            const stepSize = calculateStepSize(maxValue, norm);
             
             // Если график уже существует, обновляем его
             if (charts[chartKey]) {
@@ -567,7 +550,8 @@
                 charts[chartKey].data.datasets[0].data = values;
                 charts[chartKey].data.datasets[0].backgroundColor = colors;
                 charts[chartKey].data.datasets[1].data = new Array(labels.length).fill(norm);
-                charts[chartKey].options.plugins.title.text = fullTitle;
+                charts[chartKey].options.plugins.title.text = `${title} (норма: ${norm})`;
+                charts[chartKey].options.scales.y.ticks.stepSize = stepSize;
                 charts[chartKey].update('none');
                 return;
             }
@@ -583,19 +567,20 @@
                             data: values,
                             backgroundColor: colors,
                             borderColor: colors,
-                            borderWidth: 2,
-                            borderRadius: 8,
+                            borderWidth: 1.5,
+                            borderRadius: 6,
                             order: 2
                         },
                         {
-                            label: 'Норма',
+                            label: `Норма: ${norm}`,
                             data: new Array(labels.length).fill(norm),
                             type: 'line',
                             borderColor: '#e74c3c',
-                            borderWidth: 3,
-                            borderDash: [10, 5],
+                            borderWidth: 2.5,
+                            borderDash: [8, 4],
                             fill: false,
                             pointRadius: 0,
+                            pointHoverRadius: 0,
                             order: 1
                         }
                     ]
@@ -606,31 +591,34 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: fullTitle,
+                            text: `${title} (норма: ${norm})`,
                             font: {
-                                size: 18,
+                                size: 14,
                                 weight: 'bold'
                             },
-                            padding: 20
-                        },
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    size: 14
-                                }
+                            padding: {
+                                top: 5,
+                                bottom: 10
                             }
                         },
+                        legend: {
+                            display: false
+                        },
                         tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                size: 13,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 12
+                            },
+                            padding: 10,
                             callbacks: {
                                 label: function(context) {
-                                    if (context.dataset.label === 'Норма') {
-                                        return `Норма: ${context.parsed.y}`;
-                                    }
                                     const value = context.parsed.y;
-                                    const percentage = ((value / norm) * 100).toFixed(1);
-                                    return `${context.dataset.label}: ${value} (${percentage}% от нормы)`;
+                                    const percentage = ((value / norm) * 100).toFixed(0);
+                                    return `${value} (${percentage}% от нормы)`;
                                 }
                             }
                         }
@@ -639,24 +627,39 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
+                                stepSize: stepSize,
+                                precision: 0,
                                 font: {
-                                    size: 12
-                                }
+                                    size: 11,
+                                    weight: '500'
+                                },
+                                color: '#333'
                             },
                             grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
+                                color: 'rgba(0, 0, 0, 0.08)',
+                                lineWidth: 1
+                            },
+                            border: {
+                                display: true,
+                                color: '#999'
                             }
                         },
                         x: {
                             ticks: {
                                 font: {
-                                    size: 12
+                                    size: 10,
+                                    weight: '500'
                                 },
+                                color: '#333',
                                 maxRotation: 45,
-                                minRotation: 45
+                                minRotation: 30
                             },
                             grid: {
                                 display: false
+                            },
+                            border: {
+                                display: true,
+                                color: '#999'
                             }
                         }
                     }
