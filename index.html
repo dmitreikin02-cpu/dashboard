@@ -7,6 +7,7 @@
     
     <!-- CDN Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/customParseFormat.min.js"></script>
@@ -54,10 +55,7 @@
         }
 
         .kpi-section {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
+            display: none;
         }
 
         .kpi-card {
@@ -310,6 +308,9 @@
             placement: null,
             picking: null
         };
+        
+        let lastFileModified = null; // Отслеживание изменений файла
+        let autoRefreshTimer = null;
 
         // Инициализация dayjs с плагином для парсинга
         dayjs.extend(window.dayjs_plugin_customParseFormat);
@@ -323,10 +324,20 @@
          */
         async function loadExcelFile(filePath) {
             try {
-                const response = await fetch(filePath);
+                // Добавляем timestamp для обхода кеша
+                const cacheBuster = `?t=${new Date().getTime()}`;
+                const response = await fetch(filePath + cacheBuster);
+                
                 if (!response.ok) {
                     throw new Error(`Не удалось загрузить файл: ${response.statusText}`);
                 }
+                
+                // Проверяем дату модификации файла
+                const lastModified = response.headers.get('Last-Modified');
+                if (lastModified && lastFileModified && lastModified !== lastFileModified) {
+                    console.log('🔄 Обнаружено изменение файла, обновляем данные...');
+                }
+                lastFileModified = lastModified;
                 
                 const arrayBuffer = await response.arrayBuffer();
                 const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -337,6 +348,27 @@
             } catch (error) {
                 console.error('Ошибка загрузки файла:', error);
                 throw error;
+            }
+        }
+        
+        /**
+         * Проверяет изменения файла и обновляет дашборд при необходимости
+         */
+        async function checkFileChanges() {
+            try {
+                const cacheBuster = `?t=${new Date().getTime()}`;
+                const response = await fetch(CONFIG.DATA_PATH + cacheBuster, { method: 'HEAD' });
+                
+                if (response.ok) {
+                    const currentModified = response.headers.get('Last-Modified');
+                    
+                    if (lastFileModified && currentModified && currentModified !== lastFileModified) {
+                        console.log('📥 Файл изменился, автоматическое обновление...');
+                        await updateDashboard();
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка проверки файла:', error);
             }
         }
 
@@ -540,9 +572,13 @@
             const values = data.map(d => d.value);
             const colors = values.map(v => getBarColor(v, norm));
             
-            // Вычисляем максимальное значение и шаг
+            // Вычисляем общую сумму и максимальное значение
+            const total = _.sum(values);
             const maxValue = Math.max(...values, norm * 1.2);
             const stepSize = calculateStepSize(maxValue, norm);
+            
+            // Заголовок с общей суммой
+            const chartTitle = `${title} — Всего: ${total.toLocaleString('ru-RU')} (норма: ${norm})`;
             
             // Если график уже существует, обновляем его
             if (charts[chartKey]) {
@@ -550,8 +586,15 @@
                 charts[chartKey].data.datasets[0].data = values;
                 charts[chartKey].data.datasets[0].backgroundColor = colors;
                 charts[chartKey].data.datasets[1].data = new Array(labels.length).fill(norm);
-                charts[chartKey].options.plugins.title.text = `${title} (норма: ${norm})`;
+                charts[chartKey].options.plugins.title.text = chartTitle;
                 charts[chartKey].options.scales.y.ticks.stepSize = stepSize;
+                
+                // Обновляем аннотацию нормы
+                if (charts[chartKey].options.plugins.annotation) {
+                    charts[chartKey].options.plugins.annotation.annotations.normLine.yMin = norm;
+                    charts[chartKey].options.plugins.annotation.annotations.normLine.yMax = norm;
+                }
+                
                 charts[chartKey].update('none');
                 return;
             }
@@ -591,7 +634,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: `${title} (норма: ${norm})`,
+                            text: chartTitle,
                             font: {
                                 size: 14,
                                 weight: 'bold'
@@ -619,6 +662,31 @@
                                     const value = context.parsed.y;
                                     const percentage = ((value / norm) * 100).toFixed(0);
                                     return `${value} (${percentage}% от нормы)`;
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                normLine: {
+                                    type: 'line',
+                                    yMin: norm,
+                                    yMax: norm,
+                                    borderColor: '#e74c3c',
+                                    borderWidth: 2.5,
+                                    borderDash: [8, 4],
+                                    label: {
+                                        display: true,
+                                        content: `Норма: ${norm}`,
+                                        position: 'start',
+                                        backgroundColor: '#e74c3c',
+                                        color: '#fff',
+                                        font: {
+                                            size: 11,
+                                            weight: 'bold'
+                                        },
+                                        padding: 4,
+                                        yAdjust: -10
+                                    }
                                 }
                             }
                         }
@@ -825,10 +893,16 @@
             // Первое обновление
             await updateDashboard();
             
-            // Автообновление каждые 60 секунд
+            // Автообновление каждые 60 секунд (основной таймер)
             setInterval(updateDashboard, CONFIG.REFRESH_INTERVAL_MS);
             
+            // Дополнительная проверка изменений файла каждые 5 секунд
+            // Это позволяет мгновенно реагировать на изменения файла
+            setInterval(checkFileChanges, 5000);
+            
             console.log('✅ Дашборд готов к работе');
+            console.log('📡 Автоматическое обновление: каждые 60 сек');
+            console.log('🔍 Проверка изменений файла: каждые 5 сек');
         }
 
         // Запускаем при загрузке страницы
