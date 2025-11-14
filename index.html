@@ -294,9 +294,9 @@
             },
             
             COLORS: {
-                LOW: '#ff3b3b',      // красный (< 100% нормы)
-                MID: '#ffcc00',      // жёлтый (100% - 180% нормы)
-                HIGH: '#00b050'      // зелёный (> 180% нормы)
+                LOW: '#ff3b3b',      // красный (0-70% нормы)
+                MID: '#ffcc00',      // жёлтый (70-100% нормы)
+                HIGH: '#00b050'      // зелёный (100%+ нормы)
             }
         };
 
@@ -535,12 +535,12 @@
         function getBarColor(value, norm) {
             const percentage = (value / norm) * 100;
             
-            if (percentage < 100) {
-                return CONFIG.COLORS.LOW;
-            } else if (percentage <= 180) {
-                return CONFIG.COLORS.MID;
+            if (percentage < 70) {
+                return CONFIG.COLORS.LOW;    // Красный: 0-70%
+            } else if (percentage < 100) {
+                return CONFIG.COLORS.MID;    // Желтый: 70-100%
             } else {
-                return CONFIG.COLORS.HIGH;
+                return CONFIG.COLORS.HIGH;   // Зеленый: 100%+
             }
         }
 
